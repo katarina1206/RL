@@ -201,6 +201,7 @@ class Dog:
         if self.hunger >= 30:  # Only allow feeding if the dog is somewhat hungry
             self.happiness = max(0, self.happiness - 5)
             self._cleanliness = max(0, self._cleanliness - 5)
+            self.hunger = max(0, self.hunger - 30)
             print("You fed the dog.")
             return True
         else:
