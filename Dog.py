@@ -155,7 +155,7 @@ class Dog:
         # Update hidden and visible attributes
         self._cleanliness = max(0, self._cleanliness - 0.5)
         self._social_need = max(0, self._social_need - 0.2)
-        self.age += elapsed_time / 20  # Aging rate
+        self.age += elapsed_time / 40  # Aging rate
         self.hunger = min(100, self.hunger + hunger_rate)
         self.tiredness = min(100, self.tiredness + tiredness_rate)
 
@@ -179,7 +179,7 @@ class Dog:
             good_conditions += 1
 
         # Apply health improvement or decay based on conditions
-        if good_conditions >= 3:  # Improve health if at least 3 out of 4 conditions are met
+        if good_conditions >= 4:  # Improve health if at least 3 out of 4 conditions are met
             self.health = min(100, self.health + health_improvement)
         else:
             # Apply decay rate if conditions for improvement are not met
@@ -208,6 +208,7 @@ class Dog:
             print("The dog is not hungry enough to eat.")
             self.hunger = max(0, self.hunger - 10)  # The dog still becomes a bit less hungry over time
             self.tiredness = min(100, self.tiredness + 5)  # The dog gets slightly more tired
+            self.health = max(0, self.health - health_decay)
             return False
 
     def walk(self):
@@ -264,6 +265,7 @@ class Dog:
         self._cleanliness = 100
         self.health = min(100, self.health + 1)
         self.happiness = max(0, self.happiness - 10)
+        self.health = max(0, self.health - 4)
         return True
 
     def socialise(self):
