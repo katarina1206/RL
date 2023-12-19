@@ -16,15 +16,25 @@ class Dog:
         self.lifespan = random.uniform(17, 25)
         self.flea_treatment_count = 0  # Tracks the number of flea treatments
 
+        self.state = "normal"  # Possible states: "normal", "vet_visit", "sudden_illness", "flea_event"
+
+    def get_state(self):
+        return self.state
+
     def trigger_event(self):
         # Randomly decide whether to trigger an event
         if random.random() < 0.1:  # 10% chance for an event to occur
             self.handle_event()
 
     def handle_event(self):
-        events = [self.vet_visit, self.sudden_illness, self.flea_event]
-        random_event = random.choice(events)
-        random_event()
+        events = {
+            self.vet_visit: "vet_visit",
+            self.sudden_illness: "sudden_illness",
+            self.flea_event: "flea_event"
+        }
+        chosen_event, event_state = random.choice(list(events.items()))
+        self.state = event_state  # Update the state to reflect the current event
+        chosen_event()
 
     def vet_visit(self):
         print("Your dog seems to be feeling unwell. Do you take it to the vet? (yes/no)")
@@ -47,6 +57,7 @@ class Dog:
             else:
                 self.happiness = min(100, self.happiness + 5)  # Increase in happiness
                 print("Your dog was actually fine and is happy to have avoided a stressful vet visit.")
+        self.state = "normal"
 
     def sudden_illness(self):
         print(
@@ -69,6 +80,8 @@ class Dog:
                 print("Unfortunately, your dog needed medical attention and its condition has worsened.")
             else:
                 print("Your dog seems to be doing fine without the vet's help.")
+        self.state = "normal"
+
 
     def flea_event(self):
         if self.flea_treatment_count > 0:
@@ -88,8 +101,12 @@ class Dog:
             if self.flea_treatment_count == 3:
                 print("The fleas are gone! Your dog's happiness will now gradually improve.")
                 self.happiness = min(100, self.happiness + 20)  # Increase happiness as the fleas are gone
+                self.state = "normal"
+
         else:
             print("Flea treatment is already complete.")
+            self.state = "normal"
+
 
     def get_life_stage(self):
         if self.age >= self.lifespan:
@@ -181,34 +198,54 @@ class Dog:
         return 'alive'
 
     def feed(self):
-        # Feeding the dog decreases hunger but increases tiredness and slightly decreases cleanliness and happiness (
-        # due to less activity)
-        self.hunger = max(0, self.hunger - 30)
-        self.tiredness = min(100, self.tiredness + 10)
-        self.happiness = max(0, self.happiness - 5)
-        self._cleanliness = max(0, self._cleanliness - 5)
+        if self.hunger >= 30:  # Only allow feeding if the dog is somewhat hungry
+            self.happiness = max(0, self.happiness - 5)
+            self._cleanliness = max(0, self._cleanliness - 5)
+            print("You fed the dog.")
+            return True
+        else:
+            print("The dog is not hungry enough to eat.")
+            self.hunger = max(0, self.hunger - 10)  # The dog still becomes a bit less hungry over time
+            self.tiredness = min(100, self.tiredness + 5)  # The dog gets slightly more tired
+            return False
 
     def walk(self):
         # Walking the dog decreases tiredness, increases happiness, makes it hungry, affects cleanliness,
         # but slightly decreases health (due to exertion)
-        self.tiredness = max(0, self.tiredness - 20)
-        self.happiness = min(100, self.happiness + 10)
-        self.hunger = min(100, self.hunger + 10)
-        self._cleanliness = max(0, self._cleanliness - 10)
-        self.health = max(0, self.health - 2)
+        if self.tiredness <= 70:  # Only allow walking if the dog is not too tired
+            self.tiredness = max(0, self.tiredness - 20)
+            self.happiness = min(100, self.happiness + 10)
+            self.hunger = min(100, self.hunger + 10)
+            self._cleanliness = max(0, self._cleanliness - 10)
+            self.health = max(0, self.health - 2)
 
-        # Random chance to improve socialization need
-        if random.random() < 0.5:  # 50% chance
-            self._social_need = min(100, self._social_need + 10)
+            # Random chance to improve socialization need
+            if random.random() < 0.5:  # 50% chance
+                self._social_need = min(100, self._social_need + 10)
+            print("You took the dog for a walk.")
+            return True
+        else:
+            print("The dog is too tired to go for a walk.")
+            self.tiredness = min(100, self.tiredness + 10)  # The dog gets more tired regardless
+            self.hunger = min(100, self.hunger + 5)  # The dog gets slightly hungrier
+            return False
 
     def play(self):
         # Playing with the dog increases happiness but also increases tiredness, hunger, decreases cleanliness,
         # and slightly reduces health (due to potential rough play)
-        self.happiness = min(100, self.happiness + 15)
-        self.tiredness = min(100, self.tiredness + 20)
-        self.hunger = min(100, self.hunger + 15)
-        self._cleanliness = max(0, self._cleanliness - 15)
-        self.health = max(0, self.health - 3)
+        if self.tiredness <= 70 and self.hunger <= 70:  # Check if the dog is not too tired or hungry to play
+            self.happiness = min(100, self.happiness + 15)
+            self.tiredness = min(100, self.tiredness + 20)
+            self.hunger = min(100, self.hunger + 15)
+            self._cleanliness = max(0, self._cleanliness - 15)
+            self.health = max(0, self.health - 3)
+            print("You played with the dog.")
+            return True
+        else:
+            print("The dog is too tired or hungry to play.")
+            self.tiredness = min(100, self.tiredness + 10)  # The dog gets more tired regardless
+            self.hunger = min(100, self.hunger + 5)  # The dog gets slightly hungrier
+            return False
 
     def sleep(self):
         # Sleeping decreases tiredness, increases hunger, slightly decreases happiness (due to inactivity),
@@ -218,6 +255,7 @@ class Dog:
         self.happiness = max(0, self.happiness - 5)
         self._cleanliness = min(100, self._cleanliness + 5)
         self.health = min(100, self.health + 2)
+        return True
 
     def groom(self):
         # Grooming the dog increases cleanliness, slightly improves health, but reduces happiness (as many dogs do
@@ -225,15 +263,23 @@ class Dog:
         self._cleanliness = 100
         self.health = min(100, self.health + 1)
         self.happiness = max(0, self.happiness - 10)
+        return True
 
     def socialise(self):
         # Socializing increases social needs and happiness, but increases tiredness and hunger, and slightly reduces
         # health (due to potential overexcitement)
-        self._social_need = 100
-        self.happiness = min(100, self.happiness + 15)
-        self.tiredness = min(100, self.tiredness + 20)
-        self.hunger = min(100, self.hunger + 10)
-        self.health = max(0, self.health - 2)
+        if self.happiness >= 50:  # Only allow socializing if the dog is in a good mood
+            self._social_need = 100
+            self.happiness = min(100, self.happiness + 15)
+            self.tiredness = min(100, self.tiredness + 20)
+            self.hunger = min(100, self.hunger + 10)
+            self.health = max(0, self.health - 2)
+            print("You socialized the dog.")
+            return True
+        else:
+            print("The dog is not in the mood to socialize.")
+            self.happiness = max(0, self.happiness - 10)
+            return False
 
     def print_status(self):
         life_stage = self.get_life_stage()
