@@ -1,8 +1,15 @@
 from Dog import *
+import time
 def main():
     my_dog = Dog()
+    last_time = time.time()
+
     while True:
-        my_dog.update_status()
+        current_time = time.time()
+        elapsed_time = current_time - last_time
+        last_time = current_time
+
+        my_dog.update_status(elapsed_time)
         my_dog.print_status()
 
         action = input("What would you like to do? (feed, walk, play, sleep, quit): ")
