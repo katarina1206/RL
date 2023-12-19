@@ -215,7 +215,7 @@ class Dog:
         # Walking the dog decreases tiredness, increases happiness, makes it hungry, affects cleanliness,
         # but slightly decreases health (due to exertion)
         if self.tiredness <= 70:  # Only allow walking if the dog is not too tired
-            self.tiredness = max(0, self.tiredness - 20)
+            self.tiredness = min(100, self.tiredness + 20)
             self.happiness = min(100, self.happiness + 10)
             self.hunger = min(100, self.hunger + 10)
             self._cleanliness = max(0, self._cleanliness - 10)
