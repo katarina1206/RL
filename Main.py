@@ -2,17 +2,14 @@ from Dog import *
 import time
 def main():
     my_dog = Dog()
-    last_time = time.time()
 
     # Initial print of the dog's status before any updates
     my_dog.print_status()
 
     while True:
-        current_time = time.time()
-        elapsed_time = current_time - last_time
-        last_time = current_time
 
-        action = input("What would you like to do? (feed, walk, play, sleep, groom, socialise, flea treatment, quit): ")
+        action = input("What would you like to do? (feed, walk, play, sleep, groom, socialise, flea treatment, "
+                       "teach trick, participate in show, quit): ")
         if action == 'feed':
             my_dog.feed()
         elif action == 'walk':
@@ -27,12 +24,16 @@ def main():
             my_dog.socialise()
         elif action == 'flea treatment':
             my_dog.administer_flea_treatment()
+        elif action == 'teach trick':
+            my_dog.teach_trick()
+        elif action == 'participate in show':
+            my_dog.participate_in_show()
         elif action == 'quit':
             break
         else:
             print("Invalid action. Please choose again.")
 
-        dog_status = my_dog.update_status(elapsed_time)
+        dog_status = my_dog.update_status()
         my_dog.print_status()
 
         if dog_status == 'old_age':

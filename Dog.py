@@ -9,6 +9,12 @@ class Dog:
         self.tiredness = 0
         self.age = 0
         self.age_thresholds = {'puppy': 2, 'adult': 5, 'senior': 8}  # Age thresholds for different life stages
+        self.money = 100  # Initial money
+        self.available_tricks = {'sit': 0.1, 'roll over': 0.2, 'fetch': 0.15, 'stay': 0.05, 'dance': 0.25}
+        self.learned_tricks = {}
+        self.tricks = []  # List of learned tricks
+        self.food_cost = 5  # Cost of food per feeding
+        self.action_count = 0
 
         # Hidden Attributes
         self._cleanliness = 100
@@ -107,6 +113,37 @@ class Dog:
             print("Flea treatment is already complete.")
             self.state = "normal"
 
+    def teach_trick(self):
+        self.state = "teaching_trick"
+        print("Available tricks to teach: " + ", ".join(self.available_tricks.keys()))
+        trick_name = input("Enter the name of the trick you want to teach: ")
+
+        if trick_name in self.available_tricks and trick_name not in self.learned_tricks:
+            learning_chance = self.available_tricks[trick_name] * (2 if self.age < self.age_thresholds['adult'] else 1)
+            if random.random() < learning_chance:
+                self.learned_tricks[trick_name] = self.available_tricks[trick_name]
+                print(f"{trick_name} trick learned!")
+            else:
+                print("Failed to learn the trick this time.")
+        else:
+            print("Invalid trick name or already learned.")
+
+        self.state = "normal"
+
+    def participate_in_show(self):
+        if not self.learned_tricks:
+            print("The dog needs to know at least one trick to compete.")
+            return False
+
+        success_chance = sum(self.learned_tricks.values())
+        if random.random() < success_chance:
+            prize_money = 20
+            self.money += prize_money
+            print(f"Congratulations! You won the show and earned ${prize_money}.")
+            return True
+        else:
+            print("Better luck next time in the show.")
+            return False
 
     def get_life_stage(self):
         if self.age >= self.lifespan:
@@ -120,7 +157,7 @@ class Dog:
         else:
             return 'elderly'
 
-    def update_status(self, elapsed_time):
+    def update_status(self):
         life_stage = self.get_life_stage()
 
         # Set base rates and health decay factor
@@ -153,9 +190,9 @@ class Dog:
             health_improvement = 1.0
 
         # Update hidden and visible attributes
-        self._cleanliness = max(0, self._cleanliness - 0.5)
-        self._social_need = max(0, self._social_need - 0.2)
-        self.age += elapsed_time / 40  # Aging rate
+        self._cleanliness = max(0, self._cleanliness - 3)
+        self._social_need = max(0, self._social_need - 2)
+        self.age = self.action_count / 12 # Aging rate
         self.hunger = min(100, self.hunger + hunger_rate)
         self.tiredness = min(100, self.tiredness + tiredness_rate)
 
@@ -189,6 +226,8 @@ class Dog:
 
         self.trigger_event()
 
+        self.action_count += 1
+
         if life_stage == 'old_age':
             return 'old_age'
 
@@ -198,17 +237,21 @@ class Dog:
         return 'alive'
 
     def feed(self):
+        if self.money < self.food_cost:
+            print("Not enough money to buy food.")
+            return False
+
         if self.hunger >= 30:  # Only allow feeding if the dog is somewhat hungry
             self.happiness = max(0, self.happiness - 5)
             self._cleanliness = max(0, self._cleanliness - 5)
             self.hunger = max(0, self.hunger - 30)
+            self.money -= self.food_cost
             print("You fed the dog.")
             return True
         else:
             print("The dog is not hungry enough to eat.")
-            self.hunger = max(0, self.hunger - 10)  # The dog still becomes a bit less hungry over time
+            self.hunger = min(0, self.hunger + 10)  # The dog still becomes a bit less hungry over time
             self.tiredness = min(100, self.tiredness + 5)  # The dog gets slightly more tired
-            self.health = max(0, self.health - health_decay)
             return False
 
     def walk(self):
@@ -219,7 +262,7 @@ class Dog:
             self.happiness = min(100, self.happiness + 10)
             self.hunger = min(100, self.hunger + 10)
             self._cleanliness = max(0, self._cleanliness - 10)
-            self.health = max(0, self.health - 2)
+            # self.health = max(0, self.health - 2)
 
             # Random chance to improve socialization need
             if random.random() < 0.5:  # 50% chance
@@ -240,7 +283,7 @@ class Dog:
             self.tiredness = min(100, self.tiredness + 20)
             self.hunger = min(100, self.hunger + 15)
             self._cleanliness = max(0, self._cleanliness - 15)
-            self.health = max(0, self.health - 3)
+            # self.health = max(0, self.health - 3)
             print("You played with the dog.")
             return True
         else:
@@ -256,7 +299,7 @@ class Dog:
         self.hunger = min(100, self.hunger + 10)
         self.happiness = max(0, self.happiness - 5)
         self._cleanliness = min(100, self._cleanliness + 5)
-        self.health = min(100, self.health + 2)
+        # self.health = min(100, self.health + 2)
         return True
 
     def groom(self):
@@ -265,7 +308,7 @@ class Dog:
         self._cleanliness = 100
         self.health = min(100, self.health + 1)
         self.happiness = max(0, self.happiness - 10)
-        self.health = max(0, self.health - 4)
+        # self.health = max(0, self.health - 4)
         return True
 
     def socialise(self):
@@ -276,7 +319,7 @@ class Dog:
             self.happiness = min(100, self.happiness + 15)
             self.tiredness = min(100, self.tiredness + 20)
             self.hunger = min(100, self.hunger + 10)
-            self.health = max(0, self.health - 2)
+            # self.health = max(0, self.health - 2)
             print("You socialized the dog.")
             return True
         else:
@@ -287,4 +330,5 @@ class Dog:
     def print_status(self):
         life_stage = self.get_life_stage()
         print(f"Health: {self.health:.1f}, Hunger: {self.hunger:.1f}, Happiness: {self.happiness:.1f}, "
-              f"Tiredness: {self.tiredness:.1f}, Age: {self.age:.1f}, Life stage: {life_stage}")
+              f"Tiredness: {self.tiredness:.1f}, Age: {self.age:.1f}, Life stage: {life_stage}, "
+              f" Money left: {self.money}")
