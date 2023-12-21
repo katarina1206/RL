@@ -220,7 +220,7 @@ class Dog:
             self.health = min(100, self.health + health_improvement)
         else:
             # Apply decay rate if conditions for improvement are not met
-            if self.hunger > 70 or self.tiredness > 70 or self._cleanliness < 30 or self._social_need < 30:
+            if self.hunger > 70 or self.tiredness > 70 or self._cleanliness < 30 or self._social_need < 30 or self.state == "flea_event":
                 health_decay *= 2  # Double the health decay rate if needs are neglected
             self.health = max(0, self.health - health_decay)
 
