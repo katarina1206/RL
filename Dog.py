@@ -2,12 +2,13 @@ import random
 
 
 class Dog:
-    def __init__(self):
+    def __init__(self, rl_agent = None):
         self.health = 100
         self.hunger = 0
         self.happiness = 100
         self.tiredness = 0
         self.age = 0
+        self.rl_agent = rl_agent
         self.age_thresholds = {'puppy': 2, 'adult': 5, 'senior': 8}  # Age thresholds for different life stages
 
         # Hidden Attributes
@@ -36,9 +37,16 @@ class Dog:
         self.state = event_state  # Update the state to reflect the current event
         chosen_event()
 
+        # Return the decision state if the event involves a decision
+        if event_state in ['vet_visit', 'sudden_illness']:
+            return event_state
+        else:
+            return None
+
     def vet_visit(self):
         print("Your dog seems to be feeling unwell. Do you take it to the vet? (yes/no)")
-        choice = input().lower()
+        choice = self.rl_agent.select_action(self.get_current_state())[1]
+        print(f"RL Agent selected choice: {choice}")
         actual_condition = random.choice(['needs_care', 'fine'])  # Randomize the actual condition of the dog
 
         if choice == 'yes':
@@ -57,19 +65,25 @@ class Dog:
             else:
                 self.happiness = min(100, self.happiness + 5)  # Increase in happiness
                 print("Your dog was actually fine and is happy to have avoided a stressful vet visit.")
+
+        # Call update_q_values to update Q-values for vet_visit state
+        self.rl_agent.update_q_values(self.get_current_state(), choice, self.get_current_state())
+
         self.state = "normal"
 
     def sudden_illness(self):
-        print(
-            "Your dog has gotten into a bad accident. The dog looks okay, but would you like the vet to check? (yes/no)")
-        choice = input().lower()
+        print("Your dog has gotten into a bad accident. The dog looks okay, but would you like the vet to check? (yes/no)")
+        choice = self.rl_agent.select_action(self.get_current_state())[1]
+        print(f"RL Agent selected choice: {choice}")
         actual_condition = random.choice(['needs_care', 'fine'])
+        
+        # Update the Q-value using the RL agent's choice
+        self.rl_agent.update_q_values(self.get_current_state(), choice, self.get_current_state())
 
         if choice == 'yes':
             if actual_condition == 'needs_care':
                 self.health = min(100, self.health + 25)  # The dog needed care and gets better
-                print(
-                    "It was a good decision to visit the vet. Your dog needed medical attention and is now feeling better.")
+                print("It was a good decision to visit the vet. Your dog needed medical attention and is now feeling better.")
             else:
                 self.happiness = max(0, self.happiness - 10)  # The dog was fine and the visit stressed it
                 print("The vet found nothing wrong. Your dog is a bit stressed from the visit.")
@@ -81,6 +95,7 @@ class Dog:
             else:
                 print("Your dog seems to be doing fine without the vet's help.")
         self.state = "normal"
+
 
 
     def flea_event(self):
@@ -155,7 +170,12 @@ class Dog:
         # Update hidden and visible attributes
         self._cleanliness = max(0, self._cleanliness - 0.5)
         self._social_need = max(0, self._social_need - 0.2)
-        self.age += elapsed_time / 40  # Aging rate
+        print(f"Elapsed Time: {elapsed_time}, Previous Age: {self.age}")
+        #self.age += elapsed_time / 40  # Aging rate
+        # Adjust aging rate based on life stage
+        aging_rate = 2000  # Adjust this value based on your simulation
+        self.age += elapsed_time * aging_rate  # Aging rate
+        print(f"Updated Age: {self.age}")
         self.hunger = min(100, self.hunger + hunger_rate)
         self.tiredness = min(100, self.tiredness + tiredness_rate)
 
@@ -197,7 +217,7 @@ class Dog:
 
         return 'alive'
 
-    def feed(self):
+    def feed(self, health_decay):
         if self.hunger >= 30:  # Only allow feeding if the dog is somewhat hungry
             self.happiness = max(0, self.happiness - 5)
             self._cleanliness = max(0, self._cleanliness - 5)
@@ -288,3 +308,54 @@ class Dog:
         life_stage = self.get_life_stage()
         print(f"Health: {self.health:.1f}, Hunger: {self.hunger:.1f}, Happiness: {self.happiness:.1f}, "
               f"Tiredness: {self.tiredness:.1f}, Age: {self.age:.1f}, Life stage: {life_stage}")
+        
+    def calculate_reward(self, action, next_state):
+        # Define the base reward for different actions
+        base_rewards = {
+            'feed': 5,
+            'walk': 10,
+            'play': 8,
+            'sleep': 6,
+            'groom': 3,
+            'socialise': 7,
+            'flea treatment': -5,  # Negative reward for undergoing flea treatment
+            'yes': 5,
+            'no': -5
+        }
+
+        # Calculate additional rewards or penalties based on the dog's state
+        additional_rewards = 0
+        if self.hunger < 30:
+            additional_rewards -= 10
+        if self.happiness > 70:
+            additional_rewards += 5
+        if self.health > 70:
+            additional_rewards += 3
+        if self.tiredness < 30:
+            additional_rewards -= 2
+        # Add more conditions based on your simulation's dynamics
+
+
+        # Add a penalty for feeding when not hungry
+        if action == 'feed' and self.hunger < 30:
+            additional_rewards -= 5  # Adjust the penalty value as needed
+
+                # Calculate total reward
+        total_reward = base_rewards.get(action, 0) + additional_rewards
+
+        # Apply penalties for undesirable states or actions
+        if self.state == 'vet_visit' and action != 'flea treatment':
+            total_reward -= 10
+        elif self.state == 'sudden_illness' and action != 'vet_visit':
+            total_reward -= 15
+        elif self.state == 'flea_event' and action != 'flea treatment':
+            total_reward -= 20
+        
+
+        return total_reward
+    
+    def get_current_state(self):
+        if self.state in ['vet_visit', 'sudden_illness', 'flea_event']:
+            return self.state
+        else:
+            return 'normal'
