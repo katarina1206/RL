@@ -10,6 +10,7 @@ class Dog:
         self.happiness = 100
         self.tiredness = 0
         self.age = 0
+        self.rl_agent = rl_agent
         self.age_thresholds = {'puppy': 2, 'adult': 5, 'senior': 8}  # Age thresholds for different life stages
         self.money = 100  # Initial money
         self.available_tricks = {'sit': 0.1, 'roll over': 0.2, 'fetch': 0.15, 'stay': 0.05, 'dance': 0.25}
@@ -43,6 +44,12 @@ class Dog:
         chosen_event, event_state = random.choice(list(events.items()))
         self.state = event_state  # Update the state to reflect the current event
         chosen_event()
+
+        # Return the decision state if the event involves a decision
+        if event_state in ['vet_visit', 'sudden_illness']:
+            return event_state
+        else:
+            return None
 
     def vet_visit(self):
         # print("Your dog seems to be feeling unwell. Do you take it to the vet? (yes/no)")
@@ -84,6 +91,9 @@ class Dog:
         if self.gui_callback:
             choice = self.gui_callback("Your dog has gotten into a bad accident. Would you like the vet to check?")
         actual_condition = random.choice(['needs_care', 'fine'])
+        
+        # Update the Q-value using the RL agent's choice
+        self.rl_agent.update_q_values(self.get_current_state(), choice, self.get_current_state())
 
         if choice == 'yes':
             if actual_condition == 'needs_care':
@@ -113,6 +123,7 @@ class Dog:
                     self.gui_callback("Yiour dog seems to be doing finewithout the vet's help.")
                 #print("Your dog seems to be doing fine without the vet's help.")
         self.state = "normal"
+
 
 
     def flea_event(self):

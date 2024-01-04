@@ -1,4 +1,8 @@
-from Dog import *
+from Dog import Dog
+# Import the RLAgent
+from RLAgent import QLearningAgent
+
+
 import time
 from GUI import VirtualPetGUI
 import tkinter as tk
