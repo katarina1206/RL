@@ -154,7 +154,7 @@ class VirtualPetGUI(QWidget):
         main_layout.addLayout(button_layout)
 
         # Load background image and GIF
-        background_image = QPixmap("/Users/katarinagolubovic/Desktop/RL-main/background-scene-with-tree-white-fence-garden_1639-2581.jpg.avif")
+        background_image = QPixmap("Images/background-scene-with-tree-white-fence-garden_1639-2581.jpg.avif")
         scaled_background = background_image.scaled(self.size(), Qt.KeepAspectRatioByExpanding)
     
         palette = QPalette()
@@ -180,7 +180,7 @@ class VirtualPetGUI(QWidget):
         # Timer for updating the GUI
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_gui)
-        self.timer.start(3000)
+        self.timer.start(1000)
 
     def display_message (self, message):
         formatted_message = f"<div style = 'text-align: center; font-size: 16pt; font-weight:bold; ' > {message} < /div >"
@@ -225,13 +225,13 @@ class VirtualPetGUI(QWidget):
 
     def createActionButtons(self, layout):
         actions = [
-            ("Feed", self.dog.feed, "/Users/katarinagolubovic/Desktop/RL-main/meat-on-bone-removebg-preview.png", (50,50)),
-            ("Walk", self.dog.walk, "/Users/katarinagolubovic/Desktop/RL-main/walk-removebg-preview.png", (90, 90)),
-            ("Play", self.dog.play, "/Users/katarinagolubovic/Desktop/RL-main/tennis ball.png", (40, 40)),
-            ("Sleep", self.dog.sleep, "/Users/katarinagolubovic/Desktop/RL-main/sleep-removebg-preview.png", (90, 90)),
-            ("Groom", self.dog.groom, "/Users/katarinagolubovic/Desktop/RL-main/hairbrush-removebg-preview.png", (90, 90)),
-            ("Socialise", self.dog.socialise, "/Users/katarinagolubovic/Desktop/RL-main/socialise.png", (100, 100)),
-            ("Flea Treatment", self.dog.administer_flea_treatment, "/Users/katarinagolubovic/Desktop/RL-main/fleas-removebg-preview.png", (90, 90))
+            ("Feed", self.dog.feed, "Images/meat-on-bone-removebg-preview.png", (50,50)),
+            ("Walk", self.dog.walk, "Images/walk-removebg-preview.png", (90, 90)),
+            ("Play", self.dog.play, "Images/tennis ball.png", (40, 40)),
+            ("Sleep", self.dog.sleep, "Images/sleep-removebg-preview.png", (90, 90)),
+            ("Groom", self.dog.groom, "Images/hairbrush-removebg-preview.png", (90, 90)),
+            ("Socialise", self.dog.socialise, "Images/socialise.png", (100, 100)),
+            ("Flea Treatment", self.dog.administer_flea_treatment, "Images/fleas-removebg-preview.png", (90, 90))
         ]
         for title, action, iconPath, iconSize in actions:
             button = self.createActionButton(title, action, layout, iconPath, iconSize)
@@ -260,7 +260,7 @@ class VirtualPetGUI(QWidget):
             label.setText(f"{trick}: {'Learned' if learned_status else 'Not Learned'}")
 
     def load_gifs(self):
-        reader = QImageReader("ezgif.com-effects.gif")
+        reader = QImageReader("Images/ezgif.com-effects.gif")
         self.gif_frames = []
         while reader.canRead():
             image = reader.read()
@@ -286,10 +286,10 @@ class VirtualPetGUI(QWidget):
         self.life_stage_label.setText(f"Life Stage: {current_life_stage.capitalize()}")
         self.age_label.setText(f"Age: {current_age:.1f}")
 
-        self.health_bar.setValue(self.dog.health)
-        self.hunger_bar.setValue(self.dog.hunger)
-        self.happiness_bar.setValue(self.dog.happiness)
-        self.tiredness_bar.setValue (self.dog.tiredness)
+        self.health_bar.setValue(int(self.dog.health))
+        self.hunger_bar.setValue(int(self.dog.hunger))
+        self.happiness_bar.setValue(int(self.dog.happiness))
+        self.tiredness_bar.setValue (int(self.dog.tiredness))
 
         if dog_status == 'old_age':
             self.display_message("Congratulations! Your dog lived a long and happy life.")
