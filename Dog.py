@@ -2,7 +2,10 @@ import random
 
 
 class Dog:
-    def __init__(self, rl_agent = None):
+    def __init__ (self, gui_callback = None, rl_agent = None):
+        # self.rl_agent = rl_agent
+        self.gui_callback = gui_callback
+    #def __init__(self):
         self.health = 100
         self.hunger = 0
         self.happiness = 100
