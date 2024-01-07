@@ -14,7 +14,6 @@ class QLearningAgent:
         self.exploration_prob = exploration_prob
         self.dog_instance = dog_instance  # Set the dog_instance attribute
 
-        # Initialize Q-values as a dictionary with default values of 0
         self.q_values = {(state, action): 0 for state in state_space for action in action_space}
 
     def select_action(self, state):
